@@ -28,7 +28,7 @@ public class FabrickApiClient {
     }
 
     public ResponseEntity<String> getAccountBalance(Long accountId) {
-        String url = baseUrl + "/api/gbs/banking/v4.0/accounts/{accountId}/balance";
+        String url = baseUrl + "/accounts/{accountId}/balance";
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Auth-Schema", "S2S");
@@ -43,7 +43,7 @@ public class FabrickApiClient {
     }
 
     public ResponseEntity<String> executeTransfer(TransferRequest transferRequest) {
-        String url = baseUrl + "/api/gbs/banking/v4.0/accounts/{accountId}/payments/money-transfers";
+        String url = baseUrl + "/accounts/{accountId}/payments/money-transfers";
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Auth-Schema", "S2S");
@@ -59,7 +59,7 @@ public class FabrickApiClient {
     }
 
     public String getTransactions(Long accountId, String fromDate, String toDate) {
-        String url = "https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/" + accountId + "/transactions?"
+        String url = baseUrl + "/accounts/" + accountId + "/transactions?"
                 + "fromAccountingDate=" + fromDate + "&toAccountingDate=" + toDate;
 
         HttpHeaders headers = new HttpHeaders();

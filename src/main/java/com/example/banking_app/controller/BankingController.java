@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.banking_app.service.BankingService;
 
 @RestController
-@RequestMapping("/banking")
+@RequestMapping("/accounts")
 public class BankingController {
 
     private final BankingService bankingService;
@@ -14,17 +14,18 @@ public class BankingController {
         this.bankingService = bankingService;
     }
 
-    @GetMapping("/balance/{accountId}")
+    @GetMapping("/{accountId}/balance")
     public String getBalance(@PathVariable Long accountId) {
         return bankingService.getBalance(accountId);
     }
 
-    @PostMapping("/transfer")
-    public String executeTransfer(@RequestBody TransferRequest transferRequest) {
+    @PostMapping("/transfers")
+    public String executeTransfer(
+            @RequestBody TransferRequest transferRequest) {
         return bankingService.executeTransfer(transferRequest);
     }
 
-    @GetMapping("/transactions/{accountId}")
+    @GetMapping("/{accountId}/transactions")
     public String getTransactions(
             @PathVariable Long accountId,
             @RequestParam String fromDate,
