@@ -12,6 +12,10 @@ import java.util.Map;
 @Service
 public class FabrickApiClient {
 
+    private static final String AUTH_SCHEMA = "Auth-Schema";
+    private static final String AUTH_SCHEMA_VALUE = "S2S";
+    private static final String API_KEY = "Api-Key";
+
     @Value("${fabrick.api.base-url}")
     private String baseUrl;
 
@@ -27,27 +31,22 @@ public class FabrickApiClient {
         this.restTemplate = new RestTemplate();
     }
 
-    public ResponseEntity<String> getAccountBalance(Long accountId) {
+    public <T> ResponseEntity<T> getAccountBalance(Long accountId, Class<T> responseType) {
         String url = baseUrl + "/accounts/{accountId}/balance";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Auth-Schema", "S2S");
-        headers.set("Api-Key", apiKey);
-
+        HttpHeaders headers = createHeaders();
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         Map<String, Long> params = new HashMap<>();
         params.put("accountId", accountId);
 
-        return restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class, params);
+        return restTemplate.exchange(url, HttpMethod.GET, requestEntity, responseType, params);
     }
 
-    public ResponseEntity<String> executeTransfer(TransferRequest transferRequest) {
+    public <T> ResponseEntity<T> executeTransfer(TransferRequest transferRequest, Class<T> responseType) {
         String url = baseUrl + "/accounts/{accountId}/payments/money-transfers";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Auth-Schema", "S2S");
-        headers.set("Api-Key", apiKey);
+        HttpHeaders headers = createHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<TransferRequest> requestEntity = new HttpEntity<>(transferRequest, headers);
@@ -55,23 +54,25 @@ public class FabrickApiClient {
         Map<String, Long> params = new HashMap<>();
         params.put("accountId", accountId);
 
-        return restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class, params);
+        return restTemplate.exchange(url, HttpMethod.POST, requestEntity, responseType, params);
     }
 
-    public String getTransactions(Long accountId, String fromDate, String toDate) {
+    public <T> ResponseEntity<T> getTransactions(Long accountId, String fromDate, String toDate, Class<T> responseType) {
         String url = baseUrl + "/accounts/" + accountId + "/transactions?"
                 + "fromAccountingDate=" + fromDate + "&toAccountingDate=" + toDate;
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Auth-Schema", "S2S");
-        headers.set("Api-Key", apiKey);
+        HttpHeaders headers = createHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
-
-        return response.getBody();
+        return restTemplate.exchange(url, HttpMethod.GET, requestEntity, responseType);
     }
 
+    private HttpHeaders createHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(AUTH_SCHEMA, AUTH_SCHEMA_VALUE);
+        headers.set(API_KEY, apiKey);
+        return headers;
+    }
 }
 

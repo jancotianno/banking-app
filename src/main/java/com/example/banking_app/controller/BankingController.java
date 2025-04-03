@@ -1,11 +1,15 @@
 package com.example.banking_app.controller;
 
 import com.example.banking_app.dto.TransferRequest;
+import com.example.banking_app.response.BalanceResponse;
+import com.example.banking_app.response.TransactionsResponse;
+import com.example.banking_app.response.TransferResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.banking_app.service.BankingService;
 
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/accounts/{accountId}")
 public class BankingController {
 
     private final BankingService bankingService;
@@ -14,23 +18,25 @@ public class BankingController {
         this.bankingService = bankingService;
     }
 
-    @GetMapping("/{accountId}/balance")
-    public String getBalance(@PathVariable Long accountId) {
-        return bankingService.getBalance(accountId);
+    @GetMapping("/balance")
+    public ResponseEntity<BalanceResponse> getBalance(@PathVariable Long accountId) {
+        BalanceResponse response = bankingService.getBalance(accountId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/transfers")
-    public String executeTransfer(
+    public ResponseEntity<TransferResponse> executeTransfer(
             @RequestBody TransferRequest transferRequest) {
-        return bankingService.executeTransfer(transferRequest);
+        TransferResponse response = bankingService.executeTransfer(transferRequest);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{accountId}/transactions")
-    public String getTransactions(
+    @GetMapping("/transactions")
+    public ResponseEntity<TransactionsResponse> getTransactions(
             @PathVariable Long accountId,
             @RequestParam String fromDate,
             @RequestParam String toDate) {
-        return bankingService.getTransactions(accountId, fromDate, toDate);
+        TransactionsResponse response = bankingService.getTransactions(accountId, fromDate, toDate);
+        return ResponseEntity.ok(response);
     }
-
 }

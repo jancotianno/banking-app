@@ -1,6 +1,9 @@
 package com.example.banking_app.service;
 
 import com.example.banking_app.dto.TransferRequest;
+import com.example.banking_app.response.BalanceResponse;
+import com.example.banking_app.response.TransactionsResponse;
+import com.example.banking_app.response.TransferResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,20 +18,22 @@ public class BankingService {
         this.fabrickApiClient = fabrickApiClient;
     }
 
-    public String getBalance(Long accountId) {
-        ResponseEntity<String> response = fabrickApiClient.getAccountBalance(accountId);
+    public BalanceResponse getBalance(Long accountId) {
+        ResponseEntity<BalanceResponse> response =
+                fabrickApiClient.getAccountBalance(accountId, BalanceResponse.class);
         return response.getBody();
     }
 
-    public String getTransactions(Long accountId, String fromDate, String toDate) {
-        return fabrickApiClient.getTransactions(accountId, fromDate, toDate);
+    public TransactionsResponse getTransactions(Long accountId, String fromDate, String toDate) {
+        ResponseEntity<TransactionsResponse> response =
+                fabrickApiClient.getTransactions(accountId, fromDate, toDate, TransactionsResponse.class);
+        return response.getBody();
     }
 
-    public String executeTransfer(TransferRequest transferRequest) {
+    public TransferResponse executeTransfer(TransferRequest transferRequest) {
         log.info("Invio richiesta a Fabrick: {}", transferRequest);
-        ResponseEntity<String> response = fabrickApiClient.executeTransfer(transferRequest);
+        ResponseEntity<TransferResponse> response =
+                fabrickApiClient.executeTransfer(transferRequest, TransferResponse.class);
         return response.getBody();
     }
-
 }
-
