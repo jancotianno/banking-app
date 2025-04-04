@@ -1,9 +1,11 @@
 package com.example.banking_app.controller;
 
 import com.example.banking_app.dto.TransferRequest;
+import com.example.banking_app.request.TransactionsRequest;
 import com.example.banking_app.response.BalanceResponse;
 import com.example.banking_app.response.TransactionsResponse;
 import com.example.banking_app.response.TransferResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.banking_app.service.BankingService;
@@ -26,7 +28,7 @@ public class BankingController {
 
     @PostMapping("/transfers")
     public ResponseEntity<TransferResponse> executeTransfer(
-            @RequestBody TransferRequest transferRequest) {
+            @Valid @RequestBody TransferRequest transferRequest) {
         TransferResponse response = bankingService.executeTransfer(transferRequest);
         return ResponseEntity.ok(response);
     }
@@ -34,9 +36,8 @@ public class BankingController {
     @GetMapping("/transactions")
     public ResponseEntity<TransactionsResponse> getTransactions(
             @PathVariable Long accountId,
-            @RequestParam String fromDate,
-            @RequestParam String toDate) {
-        TransactionsResponse response = bankingService.getTransactions(accountId, fromDate, toDate);
+            @Valid @RequestBody TransactionsRequest transactionsRequest) {
+        TransactionsResponse response = bankingService.getTransactions(accountId, transactionsRequest);
         return ResponseEntity.ok(response);
     }
 }

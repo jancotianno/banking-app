@@ -1,11 +1,13 @@
 package com.example.banking_app.service;
 
 import com.example.banking_app.dto.TransferRequest;
+import com.example.banking_app.request.TransactionsRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,7 +59,10 @@ public class FabrickApiClient {
         return restTemplate.exchange(url, HttpMethod.POST, requestEntity, responseType, params);
     }
 
-    public <T> ResponseEntity<T> getTransactions(Long accountId, String fromDate, String toDate, Class<T> responseType) {
+    public <T> ResponseEntity<T> getTransactions(Long accountId, TransactionsRequest transactionsRequest, Class<T> responseType) {
+        LocalDate fromDate = transactionsRequest.getFromDate();
+        LocalDate toDate = transactionsRequest.getToDate();
+
         String url = baseUrl + "/accounts/" + accountId + "/transactions?"
                 + "fromAccountingDate=" + fromDate + "&toAccountingDate=" + toDate;
 

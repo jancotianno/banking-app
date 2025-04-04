@@ -1,6 +1,7 @@
 package com.example.banking_app.service;
 
 import com.example.banking_app.dto.TransferRequest;
+import com.example.banking_app.request.TransactionsRequest;
 import com.example.banking_app.response.BalanceResponse;
 import com.example.banking_app.response.TransactionsResponse;
 import com.example.banking_app.response.TransferResponse;
@@ -24,9 +25,9 @@ public class BankingService {
         return response.getBody();
     }
 
-    public TransactionsResponse getTransactions(Long accountId, String fromDate, String toDate) {
+    public TransactionsResponse getTransactions(Long accountId, TransactionsRequest transactionsRequest) {
         ResponseEntity<TransactionsResponse> response =
-                fabrickApiClient.getTransactions(accountId, fromDate, toDate, TransactionsResponse.class);
+                fabrickApiClient.getTransactions(accountId, transactionsRequest, TransactionsResponse.class);
         return response.getBody();
     }
 
