@@ -1,7 +1,8 @@
 package com.example.banking_app.service;
 
-import com.example.banking_app.dto.TransferRequest;
+import com.example.banking_app.constant.ConstantUtils;
 import com.example.banking_app.request.TransactionsRequest;
+import com.example.banking_app.request.TransferRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -14,12 +15,17 @@ import java.util.Map;
 @Service
 public class FabrickApiClient {
 
-    private static final String AUTH_SCHEMA = "Auth-Schema";
-    private static final String AUTH_SCHEMA_VALUE = "S2S";
-    private static final String API_KEY = "Api-Key";
-
     @Value("${fabrick.api.base-url}")
     private String baseUrl;
+
+    @Value("${op.account.balance.url}")
+    private String operationBalanceUrl;
+
+    @Value("${op.account.transactions.url}")
+    private String operationTransactionsUrl;
+
+    @Value("${op.account.transfer.url}")
+    private String operationTransferUrl;
 
     @Value("${fabrick.api.account-id}")
     private Long accountId;
@@ -34,7 +40,7 @@ public class FabrickApiClient {
     }
 
     public <T> ResponseEntity<T> getAccountBalance(Long accountId, Class<T> responseType) {
-        String url = baseUrl + "/accounts/{accountId}/balance";
+        String url = baseUrl + operationBalanceUrl.replace("{accountId}", accountId.toString());
 
         HttpHeaders headers = createHeaders();
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
@@ -46,7 +52,7 @@ public class FabrickApiClient {
     }
 
     public <T> ResponseEntity<T> executeTransfer(TransferRequest transferRequest, Class<T> responseType) {
-        String url = baseUrl + "/accounts/{accountId}/payments/money-transfers";
+        String url = baseUrl + operationTransferUrl.replace("{accountId}", accountId.toString());
 
         HttpHeaders headers = createHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -63,8 +69,10 @@ public class FabrickApiClient {
         LocalDate fromDate = transactionsRequest.getFromDate();
         LocalDate toDate = transactionsRequest.getToDate();
 
-        String url = baseUrl + "/accounts/" + accountId + "/transactions?"
-                + "fromAccountingDate=" + fromDate + "&toAccountingDate=" + toDate;
+        String url = baseUrl + operationTransactionsUrl
+                .replace("{accountId}", accountId.toString())
+                .replace("{fromDate}", fromDate.toString())
+                .replace("{toDate}", toDate.toString());
 
         HttpHeaders headers = createHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -73,10 +81,10 @@ public class FabrickApiClient {
         return restTemplate.exchange(url, HttpMethod.GET, requestEntity, responseType);
     }
 
-    private HttpHeaders createHeaders() {
+    HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(AUTH_SCHEMA, AUTH_SCHEMA_VALUE);
-        headers.set(API_KEY, apiKey);
+        headers.set(ConstantUtils.AUTH_SCHEMA, ConstantUtils.AUTH_SCHEMA_VALUE);
+        headers.set(ConstantUtils.API_KEY, apiKey);
         return headers;
     }
 }

@@ -1,6 +1,6 @@
 package com.example.banking_app.validator;
 
-import com.example.banking_app.dto.TransferRequest;
+import com.example.banking_app.request.TransferRequest;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.math.BigDecimal;

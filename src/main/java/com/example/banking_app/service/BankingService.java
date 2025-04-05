@@ -1,6 +1,6 @@
 package com.example.banking_app.service;
 
-import com.example.banking_app.dto.TransferRequest;
+import com.example.banking_app.request.TransferRequest;
 import com.example.banking_app.request.TransactionsRequest;
 import com.example.banking_app.response.BalanceResponse;
 import com.example.banking_app.response.TransactionsResponse;

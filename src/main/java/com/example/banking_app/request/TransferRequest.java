@@ -1,4 +1,4 @@
-package com.example.banking_app.dto;
+package com.example.banking_app.request;
 
 import com.example.banking_app.validator.ValidTransferRequest;
 import jakarta.validation.constraints.NotBlank;

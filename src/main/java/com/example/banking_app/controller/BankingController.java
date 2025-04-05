@@ -1,6 +1,6 @@
 package com.example.banking_app.controller;
 
-import com.example.banking_app.dto.TransferRequest;
+import com.example.banking_app.request.TransferRequest;
 import com.example.banking_app.request.TransactionsRequest;
 import com.example.banking_app.response.BalanceResponse;
 import com.example.banking_app.response.TransactionsResponse;
@@ -33,7 +33,7 @@ public class BankingController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/transactions")
+    @PostMapping("/transactions")
     public ResponseEntity<TransactionsResponse> getTransactions(
             @PathVariable Long accountId,
             @Valid @RequestBody TransactionsRequest transactionsRequest) {
