@@ -1,6 +1,7 @@
 package com.example.banking_app.service;
 
 import com.example.banking_app.constant.ConstantUtils;
+import com.example.banking_app.request.Account;
 import com.example.banking_app.request.Creditor;
 import com.example.banking_app.request.TransactionsRequest;
 import com.example.banking_app.request.TransferRequest;
@@ -87,8 +88,11 @@ class FabrickApiClientTest {
     void testExecuteTransfer() {
         // given
         TransferRequest request = new TransferRequest();
+        Account account = new Account();
+        account.setAccountCode("IT60X0542811101000000123456");
         Creditor creditor = new Creditor();
         creditor.setName("Mario Rossi");
+        creditor.setAccount(account);
         request.setDescription("Bonifico test");
         request.setCurrency("EUR");
         request.setAmount(BigDecimal.valueOf(250.00));

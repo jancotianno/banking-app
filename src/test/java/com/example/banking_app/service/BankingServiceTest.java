@@ -1,5 +1,7 @@
 package com.example.banking_app.service;
 
+import com.example.banking_app.request.Account;
+import com.example.banking_app.request.Creditor;
 import com.example.banking_app.request.TransactionsRequest;
 import com.example.banking_app.request.TransferRequest;
 import com.example.banking_app.response.BalanceResponse;
@@ -69,6 +71,14 @@ public class BankingServiceTest {
     void testExecuteTransfer() {
         TransferRequest request = new TransferRequest();
         request.setDescription("Test Transfer");
+        Account account = new Account();
+        account.setAccountCode("IT60X0542811101000000123456");
+        Creditor creditor = new Creditor();
+        creditor.setName("Mario Rossi");
+        creditor.setAccount(account);
+        request.setCreditor(creditor);
+        request.getCreditor().setAccount(account);
+
         TransferResponse mockResponse = new TransferResponse();
         mockResponse.setStatus("OK");
 

@@ -20,19 +20,22 @@ public class BankingService {
     }
 
     public BalanceResponse getBalance(Long accountId) {
+        log.info("Ottenimento saldo per l'account ID: {}", accountId);
         ResponseEntity<BalanceResponse> response =
                 fabrickApiClient.getAccountBalance(accountId, BalanceResponse.class);
         return response.getBody();
     }
 
     public TransactionsResponse getTransactions(Long accountId, TransactionsRequest transactionsRequest) {
+        log.info("Ottenimento transazione per l'account ID: {}, dalla data: {}, alla date: {}",
+                accountId, transactionsRequest.getFromDate(), transactionsRequest.getToDate());
         ResponseEntity<TransactionsResponse> response =
                 fabrickApiClient.getTransactions(accountId, transactionsRequest, TransactionsResponse.class);
         return response.getBody();
     }
 
     public TransferResponse executeTransfer(TransferRequest transferRequest) {
-        log.info("Invio richiesta a Fabrick: {}", transferRequest);
+        log.info("Invio bonifico all'IBAN: {}", transferRequest.getCreditor().getAccount().getAccountCode());
         ResponseEntity<TransferResponse> response =
                 fabrickApiClient.executeTransfer(transferRequest, TransferResponse.class);
         return response.getBody();
