@@ -5,6 +5,7 @@ import com.example.banking_app.request.TransactionsRequest;
 import com.example.banking_app.response.BalanceResponse;
 import com.example.banking_app.response.TransactionsResponse;
 import com.example.banking_app.response.TransferResponse;
+import com.example.banking_app.utils.MaskUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public class BankingService {
     }
 
     public TransactionsResponse getTransactions(Long accountId, TransactionsRequest transactionsRequest) {
-        log.info("Ottenimento transazione per l'account ID: {}, dalla data: {}, alla date: {}",
+        log.info("Ottenimento transazioni per l'account ID: {}, dalla data: {}, alla date: {}",
                 accountId, transactionsRequest.getFromDate(), transactionsRequest.getToDate());
         ResponseEntity<TransactionsResponse> response =
                 fabrickApiClient.getTransactions(accountId, transactionsRequest, TransactionsResponse.class);
@@ -35,7 +36,8 @@ public class BankingService {
     }
 
     public TransferResponse executeTransfer(TransferRequest transferRequest) {
-        log.info("Invio bonifico all'IBAN: {}", transferRequest.getCreditor().getAccount().getAccountCode());
+        String maskedIban = MaskUtil.maskIban(transferRequest.getCreditor().getAccount().getAccountCode());
+        log.info("Richiesto Bonifico per l'IBAN: {}", maskedIban);
         ResponseEntity<TransferResponse> response =
                 fabrickApiClient.executeTransfer(transferRequest, TransferResponse.class);
         return response.getBody();

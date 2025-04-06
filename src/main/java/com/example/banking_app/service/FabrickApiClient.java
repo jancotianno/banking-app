@@ -3,10 +3,13 @@ package com.example.banking_app.service;
 import com.example.banking_app.constant.ConstantUtils;
 import com.example.banking_app.request.TransactionsRequest;
 import com.example.banking_app.request.TransferRequest;
+import com.example.banking_app.utils.MaskUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
@@ -57,6 +60,10 @@ public class FabrickApiClient {
             ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, responseType, params);
             log.info("Risposta ricevuta per account ID: {} con status: {}", accountId, response.getStatusCode());
             return response;
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            log.error("Errore HTTP durante richiesta saldo account ID {}: {}, body: {}",
+                    accountId, e.getStatusCode(), e.getResponseBodyAsString());
+            throw e;
         } catch (Exception e) {
             log.error("Errore durante la richiesta saldo per account ID: {}, Errore: {}", accountId, e.getMessage());
             throw e;
@@ -77,14 +84,17 @@ public class FabrickApiClient {
         params.put(ConstantUtils.ACCOUNT_ID, accountId);
 
         try {
-            log.info("Invio richiesta per bonifico, importo: {}, destinazione IBAN: {}",
-                    transferRequest.getAmount(), transferRequest.getCreditor().getAccount().getAccountCode());
+            String maskedIban = MaskUtil.maskIban(transferRequest.getCreditor().getAccount().getAccountCode());
 
-            requestEntity.getHeaders().forEach((key, value) -> log.info("{}: {}", key, value));
+            log.info("Invio richiesta per bonifico, importo: {}, destinazione IBAN: {}",
+                    transferRequest.getAmount(), maskedIban);
 
             ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, responseType, params);
             log.info("Bonifico eseguito con successo, stato: {}", response.getStatusCode());
             return response;
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            log.error("Errore HTTP durante bonifico: {}, body: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw e;
         } catch (Exception e) {
             log.error("Errore durante l'esecuzione del bonifico, errore: {}", e.getMessage());
             throw e;
@@ -108,10 +118,13 @@ public class FabrickApiClient {
 
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
         try {
-            log.info("Invio richiesta per transazioni da {} a {}", fromDate, toDate);
             ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, responseType);
             log.info("Transazioni ricevute con successo per account ID: {}", accountId);
             return response;
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            log.error("Errore HTTP durante richiesta transazioni account ID {}: {}, body: {}",
+                    accountId, e.getStatusCode(), e.getResponseBodyAsString());
+            throw e;
         } catch (Exception e) {
             log.error("Errore durante la richiesta transazioni per account ID: {}, errore: {}", accountId, e.getMessage());
             throw e;
@@ -125,4 +138,3 @@ public class FabrickApiClient {
         return headers;
     }
 }
-

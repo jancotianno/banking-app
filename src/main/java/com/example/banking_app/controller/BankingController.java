@@ -5,6 +5,7 @@ import com.example.banking_app.request.TransactionsRequest;
 import com.example.banking_app.response.BalanceResponse;
 import com.example.banking_app.response.TransactionsResponse;
 import com.example.banking_app.response.TransferResponse;
+import com.example.banking_app.utils.MaskUtil;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -33,8 +34,8 @@ public class BankingController {
     @PostMapping("/transfers")
     public ResponseEntity<TransferResponse> executeTransfer(
             @Valid @RequestBody TransferRequest transferRequest) {
-        log.info("Richiesta bonifico sull'IBAN={}, importo={}",
-                transferRequest.getCreditor().getAccount().getAccountCode(),
+        log.info("Richiesta bonifico per l'IBAN={}, importo={}",
+                MaskUtil.maskIban(transferRequest.getCreditor().getAccount().getAccountCode()),
                 transferRequest.getAmount());
         TransferResponse response = bankingService.executeTransfer(transferRequest);
         log.debug("Transfer response: {}", response);
