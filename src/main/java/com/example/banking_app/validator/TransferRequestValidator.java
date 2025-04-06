@@ -27,7 +27,7 @@ public class TransferRequestValidator implements ConstraintValidator<ValidTransf
         if (request.getExecutionDate() != null) {
             try {
                 LocalDate executionDate = LocalDate.parse(request.getExecutionDate());
-                isExecutionDateValid = !executionDate.isBefore(LocalDate.now()); // Non deve essere nel passato
+                isExecutionDateValid = !executionDate.isBefore(LocalDate.now());
             } catch (DateTimeParseException e) {
                 isExecutionDateValid = false;
             }

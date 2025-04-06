@@ -1,10 +1,10 @@
 package com.example.banking_app.controller;
 
-import com.example.banking_app.request.TransferRequest;
+import com.example.banking_app.request.Account;
+import com.example.banking_app.request.Creditor;
 import com.example.banking_app.request.TransactionsRequest;
-import com.example.banking_app.response.BalanceResponse;
-import com.example.banking_app.response.TransactionsResponse;
-import com.example.banking_app.response.TransferResponse;
+import com.example.banking_app.request.TransferRequest;
+import com.example.banking_app.response.*;
 import com.example.banking_app.service.BankingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,8 +57,8 @@ class BankingControllerTest {
         request.setDescription("Bonifico Test");
         request.setExecutionDate("2025-04-03");
 
-        TransferRequest.Creditor.Account account = new TransferRequest.Creditor.Account("IT60X0542811101000000123456");
-        TransferRequest.Creditor creditor = new TransferRequest.Creditor("Mario Rossi", account);
+        Account account = new Account("IT60X0542811101000000123456");
+        Creditor creditor = new Creditor("Mario Rossi", account);
         request.setCreditor(creditor);
 
         TransferResponse mockResponse = new TransferResponse();
@@ -79,7 +79,7 @@ class BankingControllerTest {
                 LocalDate.of(2025, 1, 31));
 
         // Crea una transazione mockata
-        TransactionsResponse.TransactionsPayload payload = getTransactionsPayload();
+        TransactionsPayload payload = getTransactionsPayload();
 
         // Crea la risposta
         TransactionsResponse mockResponse = new TransactionsResponse();
@@ -106,12 +106,12 @@ class BankingControllerTest {
         assertEquals("TX123", actualResponse.getPayload().getList().get(0).getTransactionId());
     }
 
-    private static TransactionsResponse.TransactionsPayload getTransactionsPayload() {
-        TransactionsResponse.TransactionType type = new TransactionsResponse.TransactionType();
+    private static TransactionsPayload getTransactionsPayload() {
+        TransactionType type = new TransactionType();
         type.setEnumeration("GBS_TRANSACTION_TYPE");
         type.setValue("BONIFICO");
 
-        TransactionsResponse.Transaction transaction = new TransactionsResponse.Transaction();
+        Transaction transaction = new Transaction();
         transaction.setTransactionId("TX123");
         transaction.setOperationId("OP456");
         transaction.setAccountingDate("2024-04-01");
@@ -122,7 +122,7 @@ class BankingControllerTest {
         transaction.setDescription("Bonifico test");
 
         // Crea il payload
-        TransactionsResponse.TransactionsPayload payload = new TransactionsResponse.TransactionsPayload();
+        TransactionsPayload payload = new TransactionsPayload();
         payload.setList(List.of(transaction));
         return payload;
     }

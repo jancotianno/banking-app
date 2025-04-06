@@ -1,5 +1,7 @@
 package com.example.banking_app.service;
 
+import com.example.banking_app.constant.ConstantUtils;
+import com.example.banking_app.request.Creditor;
 import com.example.banking_app.request.TransactionsRequest;
 import com.example.banking_app.request.TransferRequest;
 import com.example.banking_app.response.BalanceResponse;
@@ -10,20 +12,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Collections;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,7 +36,7 @@ class FabrickApiClientTest {
     @BeforeEach
     public void setUp() {
         fabrickApiClient = new FabrickApiClient();
-
+        ReflectionTestUtils.setField(fabrickApiClient, "restTemplate", restTemplate);
         ReflectionTestUtils.setField(fabrickApiClient, "baseUrl", "https://sandbox.platfr.io");
         ReflectionTestUtils.setField(fabrickApiClient, "operationBalanceUrl", "/api/gbs/banking/v4.0/accounts/{accountId}/balance");
         ReflectionTestUtils.setField(fabrickApiClient, "operationTransactionsUrl", "/api/gbs/banking/v4.0/accounts/{accountId}/transactions?fromAccountingDate={fromDate}&toAccountingDate={toDate}");
@@ -47,126 +46,121 @@ class FabrickApiClientTest {
     }
 
     @Test
-    public void testGetAccountBalance() {
-        // Crea la risposta simulata
-        BalanceResponse balanceResponse = new BalanceResponse();
-        BalanceResponse.BalancePayload payload = new BalanceResponse.BalancePayload();
-        payload.setBalance(BigDecimal.valueOf(1000.00));
+    void testGetAccountBalance() {
+        // given
+        Long accountId = 123L;
+        String expectedUrl = "https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/123/balance";
 
-        // Crea una ResponseEntity con la risposta simulata
-        ResponseEntity<BalanceResponse> responseEntity = new ResponseEntity<>(balanceResponse, HttpStatus.OK);
-
-        // Imposta il comportamento del mock RestTemplate
-        when(restTemplate.exchange(
-                eq("https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/123/balance"),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                eq(BalanceResponse.class)
-        )).thenReturn(responseEntity);
-
-        // Esegui il test
-        ResponseEntity<BalanceResponse> result = fabrickApiClient.getAccountBalance(123L, BalanceResponse.class);
-        BalanceResponse response = result.getBody();
-
-        // Verifica il risultato
-        assertNotNull(result);
-        assertNotNull(response);
-        assertEquals(BigDecimal.valueOf(1000.00), response.getPayload().getBalance());
-    }
-
-    @Test
-    void testGetAccountBalance2() {
-        // Creiamo un oggetto di risposta simulato
-        BalanceResponse balanceResponse = new BalanceResponse();
-        balanceResponse.setStatus("SUCCESS");
         BalanceResponse.BalancePayload payload = new BalanceResponse.BalancePayload();
         payload.setBalance(BigDecimal.valueOf(1000));
-        balanceResponse.setPayload(payload);
 
-        // Simuliamo la risposta del RestTemplate
-//        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(BalanceResponse.class)))
-//                .thenReturn(new ResponseEntity<>(balanceResponse, HttpStatus.OK));
+        BalanceResponse response = new BalanceResponse();
+        response.setPayload(payload);
 
-        ResponseEntity<BalanceResponse> responseEntity2 = new ResponseEntity<>(balanceResponse, HttpStatus.OK);
+        ResponseEntity<BalanceResponse> mockResponse = new ResponseEntity<>(response, HttpStatus.OK);
 
+        // headers come costruiti dal metodo reale
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(ConstantUtils.AUTH_SCHEMA, ConstantUtils.AUTH_SCHEMA_VALUE);
+        headers.set(ConstantUtils.API_KEY, "api-key");
+        HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
+
+        // when
         when(restTemplate.exchange(
-                eq("https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/123/balance"),
+                eq(expectedUrl),
                 eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                eq(BalanceResponse.class)
-        )).thenReturn(responseEntity2);
+                eq(httpEntity),
+                eq(BalanceResponse.class),
+                eq(Map.of("accountId", 123L))
+        )).thenReturn(mockResponse);
 
-        // Chiamata al metodo da testare
-        ResponseEntity<BalanceResponse> responseEntity  = fabrickApiClient.getAccountBalance(123L, BalanceResponse.class);
+        // when
+        ResponseEntity<BalanceResponse> result = fabrickApiClient.getAccountBalance(accountId, BalanceResponse.class);
 
-        BalanceResponse response = responseEntity.getBody();
-
-        // Verifica
-        assertNotNull(response);
-        assertEquals("SUCCESS", response.getStatus());
-        assertEquals(BigDecimal.valueOf(1000), response.getPayload().getBalance());
+        // then
+        assertNotNull(result);
+        assertNotNull(result.getBody());
+        assertEquals(BigDecimal.valueOf(1000), result.getBody().getPayload().getBalance());
     }
 
     @Test
-    public void testExecuteTransfer() {
-        // Creiamo un oggetto di risposta simulato
-        TransferResponse transferResponse = new TransferResponse();
-        transferResponse.setStatus("SUCCESS");
+    void testExecuteTransfer() {
+        // given
+        TransferRequest request = new TransferRequest();
+        Creditor creditor = new Creditor();
+        creditor.setName("Mario Rossi");
+        request.setDescription("Bonifico test");
+        request.setCurrency("EUR");
+        request.setAmount(BigDecimal.valueOf(250.00));
+        request.setCreditor(creditor);
 
-        TransferResponse.TransferPayload payload = new TransferResponse.TransferPayload();
-        payload.setMoneyTransferId("TX12345");
-        transferResponse.setPayload(payload);
+        String expectedUrl = "https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/123/payments/money-transfers";
 
-        // Simuliamo la risposta del RestTemplate
-        when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), eq(TransferResponse.class)))
-                .thenReturn(new ResponseEntity<>(transferResponse, HttpStatus.OK));
+        TransferResponse response = new TransferResponse();
+        response.setStatus("OK");
 
-        // Creiamo una richiesta di esempio
-        TransferRequest transferRequest = new TransferRequest();
-        transferRequest.setAmount(BigDecimal.valueOf(500));
-        transferRequest.setCurrency("EUR");
-        transferRequest.setDescription("Pagamento esempio");
+        ResponseEntity<TransferResponse> mockResponse = new ResponseEntity<>(response, HttpStatus.OK);
 
-        // Chiamata al metodo da testare
-        ResponseEntity<TransferResponse> responseEntity = fabrickApiClient.executeTransfer(transferRequest, TransferResponse.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(ConstantUtils.AUTH_SCHEMA, ConstantUtils.AUTH_SCHEMA_VALUE);
+        headers.set(ConstantUtils.API_KEY, "api-key");
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<TransferRequest> httpEntity = new HttpEntity<>(request, headers);
 
-        TransferResponse response = responseEntity.getBody();
+        // when
+        when(restTemplate.exchange(
+                eq(expectedUrl),
+                eq(HttpMethod.POST),
+                eq(httpEntity),
+                eq(TransferResponse.class),
+                eq(Map.of(ConstantUtils.ACCOUNT_ID, 123L))
+        )).thenReturn(mockResponse);
 
-        // Verifica
-        assertNotNull(response);
-        assertEquals("SUCCESS", response.getStatus());
-        assertEquals("TX12345", response.getPayload().getMoneyTransferId());
+        // when
+        ResponseEntity<TransferResponse> result = fabrickApiClient.executeTransfer(request, TransferResponse.class);
+
+        // then
+        assertNotNull(result);
+        assertNotNull(result.getBody());
+        assertEquals("OK", result.getBody().getStatus());
     }
 
     @Test
-    public void testGetTransactions() {
-        // Creiamo un oggetto di risposta simulato
-        TransactionsResponse transactionsResponse = new TransactionsResponse();
-        transactionsResponse.setStatus("SUCCESS");
-        TransactionsResponse.Transaction transaction = new TransactionsResponse.Transaction();
-        transaction.setTransactionId("TX12345");
-        transactionsResponse.setPayload(new TransactionsResponse.TransactionsPayload());
-        transactionsResponse.getPayload().setList(Collections.singletonList(transaction));
+    void testGetTransactions() {
+        // given
+        TransactionsRequest request = new TransactionsRequest();
+        request.setFromDate(LocalDate.of(2024, 1, 1));
+        request.setToDate(LocalDate.of(2024, 1, 31));
 
-        // Simuliamo la risposta del RestTemplate
-        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(TransactionsResponse.class)))
-                .thenReturn(new ResponseEntity<>(transactionsResponse, HttpStatus.OK));
+        Long accountId = 123L;
+        String expectedUrl = "https://sandbox.platfr.io/api/gbs/banking/v4.0/accounts/123/transactions?fromAccountingDate=2024-01-01&toAccountingDate=2024-01-31";
 
-        // Creiamo una richiesta di esempio
-        TransactionsRequest transactionsRequest = new TransactionsRequest();
-        transactionsRequest.setFromDate(LocalDate.now().minusDays(30));
-        transactionsRequest.setToDate(LocalDate.now());
+        TransactionsResponse response = new TransactionsResponse();
+        response.setStatus("OK");
 
-        // Chiamata al metodo da testare
-        ResponseEntity<TransactionsResponse> responseEntity = fabrickApiClient.getTransactions(123L, transactionsRequest, TransactionsResponse.class);
+        ResponseEntity<TransactionsResponse> mockResponse = new ResponseEntity<>(response, HttpStatus.OK);
 
-        TransactionsResponse response = responseEntity.getBody();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(ConstantUtils.AUTH_SCHEMA, ConstantUtils.AUTH_SCHEMA_VALUE);
+        headers.set(ConstantUtils.API_KEY, "api-key");
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
 
-        // Verifica
-        assertNotNull(response);
-        assertEquals("SUCCESS", response.getStatus());
-        assertNotNull(response.getPayload());
-        assertEquals(1, response.getPayload().getList().size());
-        assertEquals("TX12345", response.getPayload().getList().get(0).getTransactionId());
+        // when
+        when(restTemplate.exchange(
+                eq(expectedUrl),
+                eq(HttpMethod.GET),
+                eq(httpEntity),
+                eq(TransactionsResponse.class)
+        )).thenReturn(mockResponse);
+
+        // when
+        ResponseEntity<TransactionsResponse> result = fabrickApiClient.getTransactions(accountId, request, TransactionsResponse.class);
+
+        // then
+        assertNotNull(result);
+        assertNotNull(result.getBody());
+        assertEquals("OK", result.getBody().getStatus());
     }
+
 }

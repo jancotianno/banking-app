@@ -31,24 +31,5 @@ public class TransferRequest {
 
     @NotBlank(message = "La descrizione è obbligatoria.")
     private String description;
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class Creditor {
-        @NotBlank(message = "Il nome del creditore è obbligatorio.")
-        private String name;
-
-        @NotNull(message = "L'account è obbligatorio.")
-        private Account account;
-
-        @Data
-        @AllArgsConstructor
-        @NoArgsConstructor
-        public static class Account {
-            @NotBlank(message = "L'IBAN è obbligatorio.")
-            private String accountCode;
-        }
-    }
 }
 

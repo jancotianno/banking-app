@@ -46,7 +46,7 @@ public class FabrickApiClient {
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         Map<String, Long> params = new HashMap<>();
-        params.put("accountId", accountId);
+        params.put(ConstantUtils.ACCOUNT_ID, accountId);
 
         return restTemplate.exchange(url, HttpMethod.GET, requestEntity, responseType, params);
     }
@@ -60,7 +60,7 @@ public class FabrickApiClient {
         HttpEntity<TransferRequest> requestEntity = new HttpEntity<>(transferRequest, headers);
 
         Map<String, Long> params = new HashMap<>();
-        params.put("accountId", accountId);
+        params.put(ConstantUtils.ACCOUNT_ID, accountId);
 
         return restTemplate.exchange(url, HttpMethod.POST, requestEntity, responseType, params);
     }
