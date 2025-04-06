@@ -47,8 +47,6 @@ public class FabrickApiClient {
     public <T> ResponseEntity<T> getAccountBalance(Long accountId, Class<T> responseType) {
         String url = baseUrl + operationBalanceUrl.replace("{accountId}", accountId.toString());
 
-        log.info("Richiesta saldo per account ID: {}, URL: {}", accountId, url);
-
         HttpHeaders headers = createHeaders();
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
@@ -56,24 +54,22 @@ public class FabrickApiClient {
         params.put(ConstantUtils.ACCOUNT_ID, accountId);
 
         try {
-            log.info("Invio richiesta per saldo account ID: {}", accountId);
+            log.info("Invio richiesta saldo");
             ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, responseType, params);
-            log.info("Risposta ricevuta per account ID: {} con status: {}", accountId, response.getStatusCode());
+            log.info("Risposta ricevuta per il conto: {} con status: {}", accountId, response.getStatusCode());
             return response;
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            log.error("Errore HTTP durante richiesta saldo account ID {}: {}, body: {}",
+            log.error("Errore HTTP durante richiesta saldo per il conto {}: {}, body: {}",
                     accountId, e.getStatusCode(), e.getResponseBodyAsString());
             throw e;
         } catch (Exception e) {
-            log.error("Errore durante la richiesta saldo per account ID: {}, Errore: {}", accountId, e.getMessage());
+            log.error("Errore durante la richiesta saldo per il conto: {}, Errore: {}", accountId, e.getMessage());
             throw e;
         }
     }
 
     public <T> ResponseEntity<T> executeTransfer(TransferRequest transferRequest, Class<T> responseType) {
         String url = baseUrl + operationTransferUrl.replace("{accountId}", accountId.toString());
-
-        log.info("Esecuzione bonifico, URL: {}", url);
 
         HttpHeaders headers = createHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -86,7 +82,7 @@ public class FabrickApiClient {
         try {
             String maskedIban = MaskUtil.maskIban(transferRequest.getCreditor().getAccount().getAccountCode());
 
-            log.info("Invio richiesta per bonifico, importo: {}, destinazione IBAN: {}",
+            log.info("Invio richiesta bonifico, importo: {}, per l'IBAN: {}",
                     transferRequest.getAmount(), maskedIban);
 
             ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, responseType, params);
@@ -110,23 +106,20 @@ public class FabrickApiClient {
                 .replace("{fromDate}", fromDate.toString())
                 .replace("{toDate}", toDate.toString());
 
-        log.info("Richiesta transazioni per account ID: {}, dal: {} al: {}, URL: {}",
-                accountId, fromDate, toDate, url);
-
         HttpHeaders headers = createHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
         try {
             ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, responseType);
-            log.info("Transazioni ricevute con successo per account ID: {}", accountId);
+            log.info("Movimenti ricevuti con successo con status: {}", response.getStatusCode());
             return response;
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            log.error("Errore HTTP durante richiesta transazioni account ID {}: {}, body: {}",
+            log.error("Errore HTTP durante richiesta movimenti il conto {}: {}, body: {}",
                     accountId, e.getStatusCode(), e.getResponseBodyAsString());
             throw e;
         } catch (Exception e) {
-            log.error("Errore durante la richiesta transazioni per account ID: {}, errore: {}", accountId, e.getMessage());
+            log.error("Errore durante la richiesta transazioni per il conto: {}, errore: {}", accountId, e.getMessage());
             throw e;
         }
     }
